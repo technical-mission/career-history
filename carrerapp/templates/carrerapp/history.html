@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>業務経歴書システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --edited-bg: #FFF2CC;
+            --chip-bg: #f5f5f5;
+            --chip-border: #d0d0d0;
+            --chip-text: #333;
+            --accent: #0056d6;
+            --th-bg: #e6e6e6;
+            --disabled-bg: #f5f5f5;
+        }
+
+        body {
+            font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+            line-height: 1.6;
+            margin: 16px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 8px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 24px 0 8px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--th-bg);
+            white-space: nowrap;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .value-display {
+            padding: 6px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+
+        .disabled-look {
+            background: var(--disabled-bg) !important;
+            color: #666;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 6px;
+            background: #fff;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border: 1px solid var(--chip-border);
+            border-radius: 16px;
+            background: var(--chip-bg);
+            color: var(--chip-text);
+        }
+
+        .chip button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .chip button:hover {
+            color: #333;
+        }
+
+        .chips-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chips-input select {
+            max-width: 260px;
+        }
+
+        .chips-input button {
+            padding: 6px 10px;
+            border: 1px solid #bbb;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .proj-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .scroll-x {
+            overflow-x: auto;
+        }
+
+        .proj-table {
+            min-width: 1200px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 12px 0 0;
+        }
+
+        .toolbar button {
+            padding: 8px 12px;
+            border: 1px solid #bbb;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .toolbar button.primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .4);
+            display: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border-radius: 8px;
+            width: min(520px, 90vw);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .2);
+            display: none;
+        }
+
+        .modal header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+        }
+
+        .modal .content {
+            padding: 12px 16px;
+        }
+
+        .modal footer {
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .edited {
+            background: var(--edited-bg) !important;
+        }
+
+        .months {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .desc {
+            width: 300px;
+            height: 200px;
+            box-sizing: border-box;
+        }
+
+        .work-scope {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 350px;
+            min-width: 350px;
+            max-width: 350px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .work-scope label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+    </style>
+
+    <style>
+        .scroll-x {
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            display: block;
+        }
+
+        .scroll-x>table.proj-table {
+            width: max-content !important;
+            max-width: none !important;
+            table-layout: auto !important;
+        }
+
+        .scroll-x>table.proj-table th,
+        .scroll-x>table.proj-table td {
+            white-space: nowrap;
+        }
+
+        .period-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .period-cell button {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 基本情報 -->
+    <div class="section" id="basic-info">
+        <h2>基本情報</h2>
+        <!-- ★ IDを一意化 -->
+        <table class="proj-table" id="basic-info-table" style="width:max-content; max-width:none; table-layout:auto;">
+            <tbody>
+                <tr>
+                    <th>社員番号</th>
+                    <td colspan=3>
+                        <div id="employeeNumber">12345</div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>氏名</th>
+                    <td>
+                        <div id="name">山田 花子
+                    </td>
+                    <th>フリガナ</th>
+                    <td><input type="text" id="kana" value="ヤマダ ハナコ" data-original="ヤマダ ハナコ"></td>
+                </tr>
+                <tr>
+                    <th>性別</th>
+                    <td>
+                        <select id="gender" data-original="女">
+                            <option value="">未選択</option>
+                            <option selected>女</option>
+                            <option>男</option>
+                            <option>その他</option>
+                        </select>
+                    </td>
+                    <th>年齢</th>
+                    <td>
+                        <div id="age" class="value-display disabled-look" data-original="">32</div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>生年月日</th>
+                    <td>
+                        <div class="date-cell">
+                            <input type="text" id="birth" class="date-display" value="1993/07/15"
+                                data-original="1993/07/15">
+                            <button type="button" class="date-edit" data-target="birth">日付を編集</button>
+                        </div>
+                    </td>
+                    <th>役職</th>
+                    <td><input type="text" id="title" value="Assistant Engineer（課長代理）"
+                            data-original="Assistant Engineer（課長代理）"></td>
+                </tr>
+                <tr>
+                    <th>取得資格</th>
+                    <td colspan="3">
+                        <div id="qual-chips" class="chips" aria-label="取得資格チップ一覧" data-original="基本情報技術者,応用情報技術者">
+                            <span class="chip" data-value="基本情報技術者"><span>基本情報技術者</span><button type="button"
+                                    title="削除">×</button></span>
+                            <span class="chip" data-value="応用情報技術者"><span>応用情報技術者</span><button type="button"
+                                    title="削除">×</button></span>
+                        </div>
+                        <div class="chips-input" aria-label="取得資格の追加">
+                            <select id="qual-select">
+                                <option value="">-- 資格を選択 --</option>
+                                <option>基本情報技術者</option>
+                                <option>応用情報技術者</option>
+                                <option>ネットワークスペシャリスト</option>
+                                <option>データベーススペシャリスト</option>
+                                <option>その他</option>
+                            </select>
+                            <button type="button" id="qual-add">追加</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>路線・最寄駅</th>
+                    <td><input type="text" id="nearest" value="JR東海道本線・大府駅" data-original="JR東海道本線・大府駅"></td>
+                    <th>経験年数</th>
+                    <td><input type="text" id="experience" readonly class="disabled-look"></td>
+                </tr>
+                <tr>
+                    <th>特記事項</th>
+                    <td colspan="3">
+                        <textarea id="notes" rows="4"
+                            data-original="多様な業界・製品の開発経験を持ち、要件定義から設計・実装・試験・保守まで一貫して対応可能です。\n組込系ソフトウェア開発に加え、クラウド連携やAI技術を活用したプロジェクトにも参画しています。\nチームリーダーとしてメンバー育成やプロジェクト進行管理にも従事し、円滑なコミュニケーションと品質向上に貢献しています。">多様な業界・製品の開発経験を持ち、要件定義から設計・実装・試験・保守まで一貫して対応可能です。
+組込系ソフトウェア開発に加え、クラウド連携やAI技術を活用したプロジェクトにも参画しています。
+チームリーダーとしてメンバー育成やプロジェクト進行管理にも従事し、円滑なコミュニケーションと品質向上に貢献しています。</textarea>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="note">・編集した項目は背景色を #FFF2CC で表示します。</div>
+    </div>
+
+    <!-- プロジェクト経歴 -->
+    <div class="section proj-container" id="projects">
+        <h2>プロジェクト経歴</h2>
+        <div class="scroll-x">
+            <!-- ★ IDを一意化 -->
+            <table class="proj-table" id="projects-table">
+                <thead>
+                    <tr>
+                        <th>選択</th>
+                        <th>期間</th>
+                        <th>月数</th>
+                        <th>プロジェクト名称</th>
+                        <th>概要・担当部位</th>
+                        <th>役割</th>
+                        <th>言語</th>
+                        <th>OS</th>
+                        <th>ツール</th>
+                        <th>作業範囲</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td>
+                            <div class="period-cell">
+                                <input type="text" class="period-display" placeholder="YYYY/MM～YYYY/MM"
+                                    data-original="2022/01～2022/12" value="2022/01～2022/12">
+                                <button type="button" class="period-edit">期間を編集</button>
+                            </div>
+                        </td>
+                        <td><input type="number" class="months disabled-look" min="0" value="" data-original=""
+                                readonly></td>
+                        <td><input type="text" class="proj-name" value="IoTデバイス管理・監視システム"
+                                data-original="IoTデバイス管理・監視システム"></td>
+                        <td><textarea class="desc" rows="3"
+                                data-original="IoTデバイスの管理・監視システムの設計・開発・テストを担当。クラウド連携やセキュリティ機能の実装も実施。">IoTデバイスの管理・監視システムの設計・開発・テストを担当。クラウド連携やセキュリティ機能の実装も実施。</textarea>
+                        </td>
+                        <td>
+                            <select class="role" data-original="PL" value="PL">
+                                <option value="">未選択</option>
+                                <option>PG</option>
+                                <option>GL</option>
+                                <option selected>PL</option>
+                                <option>PM</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="lang" data-original="C/C++,Python">
+                                <span class="chip" data-value="C/C++"><span>C/C++</span><button type="button"
+                                        title="削除">×</button></span>
+                                <span class="chip" data-value="Python"><span>Python</span><button type="button"
+                                        title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="lang-select">
+                                    <option value="">-- 言語を選択 --</option>
+                                    <option>C/C++</option>
+                                    <option>Java</option>
+                                    <option>Python</option>
+                                    <option>VBA</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="lang-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="os" data-original="Linux">
+                                <span class="chip" data-value="Linux"><span>Linux</span><button type="button"
+                                        title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="os-select">
+                                    <option value="">-- OSを選択 --</option>
+                                    <option>Windows</option>
+                                    <option>Linux</option>
+                                    <option>RTOS</option>
+                                    <option>Ubuntu</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="os-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="tool" data-original="Visual Studio">
+                                <span class="chip" data-value="Visual Studio"><span>Visual Studio</span><button
+                                        type="button" title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="tool-select">
+                                    <option value="">-- ツールを選択 --</option>
+                                    <option>Visual Studio</option>
+                                    <option>Eclipse</option>
+                                    <option>Excel VBA</option>
+                                    <option>Google Cloud SDK</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="tool-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="work-scope" data-original="製造,要件定義">
+                                <label><input type="checkbox" class="scope" value="開発管理">開発管理</label>
+                                <label><input type="checkbox" class="scope" value="要件定義" checked>要件定義</label>
+                                <label><input type="checkbox" class="scope" value="基本設計">基本設計</label>
+                                <label><input type="checkbox" class="scope" value="機能設計">機能設計</label>
+                                <label><input type="checkbox" class="scope" value="詳細設計">詳細設計</label>
+                                <label><input type="checkbox" class="scope" value="DB設計">DB設計</label>
+                                <label><input type="checkbox" class="scope" value="製造" checked>製造</label>
+                                <label><input type="checkbox" class="scope" value="結合試験">結合試験</label>
+                                <label><input type="checkbox" class="scope" value="総合試験">総合試験</label>
+                                <label><input type="checkbox" class="scope" value="保守">保守</label>
+                                <label><input type="checkbox" class="scope" value="その他">その他</label>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><input type="checkbox" class="row-select"></td>
+                        <td>
+                            <div class="period-cell">
+                                <input type="text" class="period-display" placeholder="YYYY/MM～YYYY/MM"
+                                    data-original="2023/02～2023/11" value="2023/02～2023/11">
+                                <button type="button" class="period-edit">期間を編集</button>
+                            </div>
+                        </td>
+                        <td><input type="number" class="months disabled-look" min="0" value="" data-original=""
+                                readonly></td>
+                        <td><input type="text" class="proj-name" value="車載ECUソフトウェア" data-original="車載ECUソフトウェア"></td>
+                        <td><textarea class="desc" rows="3"
+                                data-original="車載ECUのソフトウェア設計・実装・評価を担当。AUTOSAR準拠のモジュール開発やテスト自動化にも従事。">車載ECUのソフトウェア設計・実装・評価を担当。AUTOSAR準拠のモジュール開発やテスト自動化にも従事。</textarea>
+                        </td>
+                        <td>
+                            <select class="role" data-original="PG" value="PG">
+                                <option value="">未選択</option>
+                                <option selected>PG</option>
+                                <option>GL</option>
+                                <option>PL</option>
+                                <option>PM</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="lang" data-original="Java">
+                                <span class="chip" data-value="Java"><span>Java</span><button type="button"
+                                        title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="lang-select">
+                                    <option value="">-- 言語を選択 --</option>
+                                    <option>C/C++</option>
+                                    <option>Java</option>
+                                    <option>Python</option>
+                                    <option>VBA</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="lang-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="os" data-original="Windows">
+                                <span class="chip" data-value="Windows"><span>Windows</span><button type="button"
+                                        title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="os-select">
+                                    <option value="">-- OSを選択 --</option>
+                                    <option>Windows</option>
+                                    <option>Linux</option>
+                                    <option>RTOS</option>
+                                    <option>Ubuntu</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="os-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chips" data-field="tool" data-original="Eclipse">
+                                <span class="chip" data-value="Eclipse"><span>Eclipse</span><button type="button"
+                                        title="削除">×</button></span>
+                            </div>
+                            <div class="chips-input">
+                                <select class="tool-select">
+                                    <option value="">-- ツールを選択 --</option>
+                                    <option>Visual Studio</option>
+                                    <option>Eclipse</option>
+                                    <option>Excel VBA</option>
+                                    <option>Google Cloud SDK</option>
+                                    <option>その他</option>
+                                </select>
+                                <button type="button" class="tool-add">追加</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="work-scope" data-original="基本設計">
+                                <label><input type="checkbox" class="scope" value="開発管理">開発管理</label>
+                                <label><input type="checkbox" class="scope" value="要件定義">要件定義</label>
+                                <label><input type="checkbox" class="scope" value="基本設計" checked>基本設計</label>
+                                <label><input type="checkbox" class="scope" value="機能設計">機能設計</label>
+                                <label><input type="checkbox" class="scope" value="詳細設計">詳細設計</label>
+                                <label><input type="checkbox" class="scope" value="DB設計">DB設計</label>
+                                <label><input type="checkbox" class="scope" value="製造">製造</label>
+                                <label><input type="checkbox" class="scope" value="結合試験">結合試験</label>
+                                <label><input type="checkbox" class="scope" value="総合試験">総合試験</label>
+                                <label><input type="checkbox" class="scope" value="保守">保守</label>
+                                <label><input type="checkbox" class="scope" value="その他">その他</label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="toolbar">
+            <button type="button" id="add-row">プロジェクト追加</button>
+            <button type="button" id="delete-selected">選択行を削除</button>
+            <button type="button" id="cancel">キャンセル</button>
+            <button type="button" id="save" class="primary">保存</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+
+    <div class="modal" id="period-modal" role="dialog" aria-modal="true" aria-labelledby="period-title">
+        <header id="period-title">期間の選択</header>
+        <div class="content">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <label>開始月<br><input type="month" id="start-month"></label>
+                <label>終了月<br><input type="month" id="end-month"></label>
+            </div>
+            <div class="note">終了月は開始月以降に設定してください。</div>
+        </div>
+        <footer>
+            <button type="button" id="period-cancel">キャンセル</button>
+            <button type="button" id="period-apply" class="primary">適用</button>
+        </footer>
+    </div>
+
+    <div class="modal" id="date-modal" role="dialog" aria-modal="true" aria-labelledby="date-title">
+        <header id="date-title">日付の選択</header>
+        <div class="content">
+            <label>日付<br><input type="date" id="date-picker"></label>
+        </div>
+        <footer>
+            <button type="button" id="date-cancel">キャンセル</button>
+            <button type="button" id="date-apply" class="primary">適用</button>
+        </footer>
+    </div>
+
+    <script>
+        // ------- 汎用・編集トラッキング -------
+        function markEdited(el) {
+            const orig = el.getAttribute('data-original');
+            if (orig === null) return;
+            const val = (el.value ?? '').trim();
+            if (val !== (orig ?? '').trim()) el.classList.add('edited'); else el.classList.remove('edited');
+        }
+        function bindEditedTracking(scope = document) {
+            scope.querySelectorAll('input[type="text"], input[type="number"], select, textarea')
+                .forEach(el => {
+                    el.addEventListener('change', () => markEdited(el));
+                    el.addEventListener('input', () => markEdited(el));
+                });
+        }
+
+        // ------- 年齢計算 -------
+        function calcAgeFromBirth(birthStr) {
+            const m = birthStr.match(/^(\d{4})\/(\d{2})(?:\/(\d{2}))?$/);
+            if (!m) return '';
+            const y = +m[1], mo = +m[2], d = m[3] ? +m[3] : 1;
+            const today = new Date();
+            let age = today.getFullYear() - y;
+            const tmo = today.getMonth() + 1, td = today.getDate();
+            if (tmo < mo || (tmo === mo && td < d)) age--;
+            return String(age);
+        }
+        function updateAge() {
+            const birth = document.getElementById('birth');
+            const age = document.getElementById('age');
+            age.textContent = calcAgeFromBirth(birth.value);
+        }
+
+        // ------- チップ共通 -------
+        function chipsToString(container) {
+            return Array.from(container.querySelectorAll('.chip')).map(c => c.dataset.value).sort().join(',');
+        }
+        function updateChipsEdited(container) {
+            const orig = container.getAttribute('data-original') || '';
+            const cur = chipsToString(container);
+            if (cur !== orig) container.classList.add('edited'); else container.classList.remove('edited');
+        }
+
+        // チップ生成（追加時）
+        function addChip(container, text, initial = false) {
+            if (!text) return;
+            const exists = Array.from(container.querySelectorAll('.chip')).some(c => c.dataset.value === text);
+            if (exists) return; // 既存は追加しない
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.dataset.value = text;
+            chip.innerHTML = `<span>${text}</span><button type="button" title="削除">×</button>`;
+            // 個別リスナー（委任と併用でも問題なし）
+            chip.querySelector('button').addEventListener('click', () => {
+                chip.remove();
+                updateChipsEdited(container);
+            });
+            container.appendChild(chip);
+            if (initial) {
+                container.setAttribute('data-original', chipsToString(container));
+            } else {
+                updateChipsEdited(container);
+            }
+        }
+
+        // ★ ここがポイント：イベント委任で初期表示チップの削除に対応
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.matches('.chip button')) {
+                const chip = e.target.closest('.chip');
+                const container = chip?.closest('.chips');
+                if (!chip || !container) return;
+                chip.remove();
+                updateChipsEdited(container);
+            }
+        });
+
+        // 取得資格（基本情報）
+        const qualBox = document.getElementById('qual-chips');
+        const qualAddBtn = document.getElementById('qual-add');
+        const qualSelect = document.getElementById('qual-select');
+        ['基本情報技術者', '応用情報技術者'].forEach(q => addChip(qualBox, q, true));
+        qualAddBtn.addEventListener('click', () => {
+            let val = qualSelect.value;
+            if (val === 'その他') {
+                const custom = prompt('資格名を入力してください');
+                if (custom) val = custom.trim(); else return;
+            }
+            addChip(qualBox, val, false);
+        });
+
+        // プロジェクト行：チップ追加ハンドラ
+        function bindChipsRow(row) {
+            const makeHandler = (selectCls, boxAttr) => {
+                const box = row.querySelector(`.chips[data-field="${boxAttr}"]`);
+                return () => {
+                    const sel = row.querySelector(`.${selectCls}`);
+                    let val = sel.value;
+                    if (val === 'その他') {
+                        const label = boxAttr === 'lang' ? '言語' : boxAttr === 'os' ? 'OS' : 'ツール';
+                        const custom = prompt(`${label}を入力してください`);
+                        if (custom) val = custom.trim(); else return;
+                    }
+                    addChip(box, val, false);
+                };
+            };
+            row.querySelector('.lang-add').addEventListener('click', makeHandler('lang-select', 'lang'));
+            row.querySelector('.os-add').addEventListener('click', makeHandler('os-select', 'os'));
+            row.querySelector('.tool-add').addEventListener('click', makeHandler('tool-select', 'tool'));
+        }
+
+        // 既存2行の初期チップ（HTMLに既にあるため data-original は属性で保持）
+        function seedRowChips() {
+            const rows = document.querySelectorAll('#projects #projects-table tbody tr');
+            if (rows[0]) {
+                const r0 = rows[0];
+                addChip(r0.querySelector('.chips[data-field="lang"]'), 'C/C++', true);
+                addChip(r0.querySelector('.chips[data-field="lang"]'), 'Python', true);
+                addChip(r0.querySelector('.chips[data-field="os"]'), 'Linux', true);
+                addChip(r0.querySelector('.chips[data-field="tool"]'), 'Visual Studio', true);
+            }
+            if (rows[1]) {
+                const r1 = rows[1];
+                addChip(r1.querySelector('.chips[data-field="lang"]'), 'Java', true);
+                addChip(r1.querySelector('.chips[data-field="os"]'), 'Windows', true);
+                addChip(r1.querySelector('.chips[data-field="tool"]'), 'Eclipse', true);
+            }
+        }
+
+        // チェックボックスグループ
+        function selectedInGroup(group) {
+            return Array.from(group.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.value).sort().join(',');
+        }
+        function bindCheckboxGroup(group) {
+            if (!group.hasAttribute('data-original') || group.getAttribute('data-original') === '') {
+                group.setAttribute('data-original', selectedInGroup(group));
+            }
+            const setEdited = () => {
+                const orig = group.getAttribute('data-original') || '';
+                const cur = selectedInGroup(group);
+                if (cur !== orig) group.classList.add('edited'); else group.classList.remove('edited');
+            };
+            group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', setEdited);
+            });
+            setEdited();
+        }
+
+        // 期間モーダル
+        let currentPeriodDisplay = null;
+        const backdrop = document.getElementById('modal-backdrop');
+        const periodModal = document.getElementById('period-modal');
+        function openPeriodModalFor(display) {
+            currentPeriodDisplay = display;
+            const val = display.value.trim();
+            const parts = val.includes('～') ? val.split('～') : val.split(' - ');
+            const s = parts[0] || '';
+            const e = parts[1] || '';
+            document.getElementById('start-month').value = s.replace('/', '-');
+            document.getElementById('end-month').value = e.replace('/', '-');
+            backdrop.style.display = 'block';
+            periodModal.style.display = 'block';
+        }
+        function closePeriodModal() {
+            backdrop.style.display = 'none';
+            periodModal.style.display = 'none';
+        }
+        function bindPeriodButtons(scope = document) {
+            scope.querySelectorAll('.period-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const display = btn.closest('.period-cell').querySelector('.period-display');
+                    openPeriodModalFor(display);
+                });
+            });
+        }
+        document.getElementById('period-cancel').addEventListener('click', closePeriodModal);
+        document.getElementById('period-apply').addEventListener('click', () => {
+            const s = document.getElementById('start-month').value;
+            const e = document.getElementById('end-month').value;
+            if (!s || !e || e < s) {
+                alert('終了月は開始月以降に設定してください。');
+                return;
+            }
+            const val = s.replace('-', '/') + '～' + e.replace('-', '/');
+            currentPeriodDisplay.value = val;
+            markEdited(currentPeriodDisplay);
+            closePeriodModal();
+            updateMonthsFromPeriod(currentPeriodDisplay);
+        });
+
+        // 日付モーダル
+        let currentDateDisplay = null;
+        const dateModal = document.getElementById('date-modal');
+        function openDateModalFor(display) {
+            currentDateDisplay = display;
+            const val = display.value.trim();
+            document.getElementById('date-picker').value = val.replaceAll('/', '-');
+            backdrop.style.display = 'block';
+            dateModal.style.display = 'block';
+        }
+        function closeDateModal() { backdrop.style.display = 'none'; dateModal.style.display = 'none'; }
+        document.querySelectorAll('.date-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const display = document.getElementById(btn.getAttribute('data-target'));
+                openDateModalFor(display);
+            });
+        });
+        document.getElementById('date-cancel').addEventListener('click', closeDateModal);
+        document.getElementById('date-apply').addEventListener('click', () => {
+            const val = document.getElementById('date-picker').value;
+            if (!val) { alert('日付を選択してください。'); return; }
+            const disp = val.replaceAll('-', '/');
+            currentDateDisplay.value = disp;
+            markEdited(currentDateDisplay);
+            closeDateModal();
+            if (currentDateDisplay.id === 'birth') { updateAge(); }
+        });
+
+        // 月数・経験年数
+        function diffMonthsInclusive(startYM, endYM) {
+            const sParts = startYM.split('-').map(Number);
+            const eParts = endYM.split('-').map(Number);
+            const sTotal = sParts[0] * 12 + (sParts[1] - 1);
+            const eTotal = eParts[0] * 12 + (eParts[1] - 1);
+            return (eTotal - sTotal + 1);
+        }
+        function enumerateMonths(startYM, endYM) {
+            const res = [];
+            let [y, m] = startYM.split('-').map(Number);
+            const [ey, em] = endYM.split('-').map(Number);
+            while (y < ey || (y === ey && m <= em)) {
+                res.push(`${y}-${String(m).padStart(2, '0')}`);
+                m++;
+                if (m > 12) { m = 1; y++; }
+            }
+            return res;
+        }
+        function recalcExperience() {
+            const set = new Set();
+            document.querySelectorAll('#projects #projects-table tbody tr').forEach(row => {
+                const val = (row.querySelector('.period-display').value || '').trim();
+                if (!val) return;
+                const parts = val.includes('～') ? val.split('～') : val.split(' - ');
+                const s = parts[0].replace('/', '-');
+                const e = parts[1].replace('/', '-');
+                enumerateMonths(s, e).forEach(m => set.add(m));
+            });
+            const months = set.size;
+            const years = Math.floor(months / 12);
+            const rem = months % 12;
+            document.getElementById('experience').value = (years > 0 ? `${years}年` : '') + `${rem}ヶ月`;
+        }
+        function updateMonthsFromPeriod(input) {
+            const val = (input.value || '').trim();
+            const sep = val.includes('～') ? '～' : (val.includes(' - ') ? ' - ' : null);
+            if (!sep) return;
+            const [sRaw, eRaw] = val.split(sep);
+            if (!sRaw || !eRaw) return;
+            const s = sRaw.replace('/', '-');
+            const e = eRaw.replace('/', '-');
+            const row = input.closest('tr');
+            const monthsInput = row.querySelector('.months');
+            if (monthsInput) {
+                monthsInput.value = diffMonthsInclusive(s, e);
+                markEdited(monthsInput);
+            }
+            recalcExperience();
+        }
+
+        // 入力イベント
+        document.querySelectorAll('.period-display').forEach(input => {
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') { updateMonthsFromPeriod(input); } });
+            input.addEventListener('blur', () => updateMonthsFromPeriod(input));
+        });
+        const birthInput = document.getElementById('birth');
+        birthInput.addEventListener('keydown', e => { if (e.key === 'Enter') { updateAge(); } });
+        birthInput.addEventListener('blur', updateAge);
+
+        // ★ 追加行：対象tbodyをプロジェクト経歴に限定 + 防御的コーディング
+        document.getElementById('add-row').addEventListener('click', () => {
+            const tbody = document.querySelector('#projects #projects-table tbody');
+            const tmpl = tbody.querySelector('tr');
+            const row = tmpl.cloneNode(true);
+
+            // 値のクリア
+            row.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.classList.contains('period-display')) {
+                    el.value = '';
+                    el.setAttribute('data-original', '');
+                } else if (el.tagName === 'TEXTAREA') {
+                    el.value = '';
+                    el.setAttribute('data-original', '');
+                } else if (el.type === 'checkbox') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                    el.setAttribute('data-original', '');
+                }
+                el.classList.remove('edited');
+            });
+
+            // 月数フィールド
+            const months = row.querySelector('.months');
+            if (months) { months.readOnly = true; months.classList.add('disabled-look'); }
+
+            // チップ類初期化
+            row.querySelectorAll('.chips').forEach(c => {
+                c.innerHTML = '';
+                c.setAttribute('data-original', '');
+                c.classList.remove('edited');
+            });
+
+            // 作業範囲チェック群初期化
+            row.querySelectorAll('.work-scope').forEach(g => {
+                g.setAttribute('data-original', '');
+                g.classList.remove('edited');
+            });
+
+            tbody.appendChild(row);
+
+            // 行内のハンドラ紐付け
+            bindChipsRow(row);
+            bindPeriodButtons(row);
+            row.querySelectorAll('.work-scope').forEach(bindCheckboxGroup);
+            bindEditedTracking(row);
+
+            // 期間入力監視
+            const newPeriod = row.querySelector('.period-display');
+            newPeriod.addEventListener('keydown', e => { if (e.key === 'Enter') { updateMonthsFromPeriod(newPeriod); } });
+            newPeriod.addEventListener('blur', () => updateMonthsFromPeriod(newPeriod));
+        });
+
+        // 削除（チェックされた行）
+        document.getElementById('delete-selected').addEventListener('click', () => {
+            const rows = Array.from(document.querySelectorAll('#projects #projects-table tbody tr'));
+            const toDelete = rows.filter(r => r.querySelector('.row-select').checked);
+            if (toDelete.length === 0) { alert('削除する行を選択してください。'); return; }
+            toDelete.forEach(r => r.remove());
+            recalcExperience();
+        });
+
+        // ダミー保存
+        document.getElementById('save').addEventListener('click', () => { alert('保存しました。'); });
+
+        // キャンセル
+        document.getElementById('cancel').addEventListener('click', () => { alert('キャンセルしました。'); });
+
+        // 初期化
+        bindEditedTracking();
+        document.querySelectorAll('#projects #projects-table tbody tr').forEach(bindPeriodButtons);
+        document.querySelectorAll('#projects #projects-table tbody tr').forEach(bindChipsRow);
+        seedRowChips();
+        document.querySelectorAll('.work-scope').forEach(bindCheckboxGroup);
+        document.querySelectorAll('#projects #projects-table tbody tr').forEach(row => {
+            const val = (row.querySelector('.period-display').value || '').trim();
+            if (val && val.includes('～')) {
+                const [sRaw, eRaw] = val.split('～');
+                const s = sRaw.replace('/', '-');
+                const e = eRaw.replace('/', '-');
+                const monthsInput = row.querySelector('.months');
+                if (monthsInput) { monthsInput.value = diffMonthsInclusive(s, e); }
+            }
+        });
+        updateAge();
+        recalcExperience();
+    </script>
+</body>
+
+</html>
